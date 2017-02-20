@@ -14,6 +14,12 @@ def least_squares_grad(x, features, labels):
     grad_array = (features.dot(x.T) - labels)* features
     return np.sum(grad_array, axis=0) / n_samples
 
+def least_squares_hess(x, features, labels):
+     n_samples = features.shape[0]
+     x = x.reshape(1, n_features)
+     hess_matrix = (x.T).dot(x)
+     return np.sum(hess_matrix, axis=0) 
+
 logistic = lambda x: 1. / (1. + np.exp(-x))
 
 def logistic_loss(x, features, labels):
@@ -25,8 +31,14 @@ def logistic_loss(x, features, labels):
 def logistic_loss_grad(x, features, labels):
     n_samples = features.shape[0]
     x = x.reshape(1, n_features)
-    grad_array = -labels / (1 + np.exp(labels * features.dot(x.T))) * features
+    grad_array = - labels / (1 + np.exp(labels * features.dot(x.T))) * features
     return np.sum(grad_array, axis=0) / n_samples
+
+def logistic_loss_hess(x, features, labels):
+    n_samples = features.shape[0]
+    x = x.reshape(1, n_features)
+    hess_array = (labels*features)**2 * np.exp(labels * features.dot(x.T)) / (1 + np.exp(labels * features.dot(x.T)))**2
+    return np.sum(hess_array, axis=0) / n_samples
 
 def prox_l1(x, l=1.):
     x_abs = np.abs(x)
@@ -75,7 +87,7 @@ def ista(x_init, grad, prox, n_iter = 100, step = 1., callback = None):
     x = x_init.copy()
 
     for _ in range(n_iter):
-        x = prox(x - step *grad(x), step)
+        x = prox(x - step * grad(x), step)
 
         if callback is not None:
             callback(x)
@@ -99,6 +111,19 @@ def fista(x_init, grad, prox, n_iter=100, step=1., callback=None):
         if callback is not None:
             callback(x)
     return x
+
+def newton(x_init, hessian, grad, prox, n_iter=100, step=1., callback=None):
+        """Newton algorithm"""
+        x = x_init.copy()
+        for _ in range(n_iter):
+            x = prox(x - hessian(x) * grad(x), step)
+
+            if callback is not None:
+                callback(x)
+                   
+        return x
+
+
 
 #Generate a fake dataset
 
@@ -135,10 +160,12 @@ l_l2 = 0.1
 if linear == True:
     f = lambda x: least_squares(x, features, labels)
     grad_f = lambda x: least_squares_grad(x, features, labels)
+    hess_f = lambda x: least_squares_hess(x, features, labels)
     step = norm(features.T.dot(features)/ n_samples, 2)
 else:
     f = lambda x: logistic_loss(x, features, labels)
     grad_f = lambda x: logistic_loss_grad(x, features, labels)
+    hess_f = lambda x: logistic_loss_hess(x, features, labels)
     step = 1.
 
 #g, F and prox
@@ -174,37 +201,110 @@ grad_gd = lambda x: grad_f(x) + l_l1 * np.abs(x) + l_l2 * x
 gd_inspector = inspector(loss_fun=F, x_real=params, verbose=True)
 x_gd = gd(x_init, grad=grad_gd, n_iter=n_iter, step=step, callback=gd_inspector)
 
-plt.figure(figsize=(18, 5))
-plt.suptitle("Final estimates", fontsize=18)
-plt.subplot(1, 4, 1)
-plt.title("Real params")
-plt.stem(params[0])
-plt.subplot(1, 4, 2)
-plt.title("ISTA")
-plt.stem(x_ista[0], color='red')
-plt.subplot(1, 4, 3)
-plt.title("FISTA")
-plt.stem(x_fista[0])
-plt.subplot(1, 4, 4)
-plt.title("GD")
-plt.stem(x_gd[0])
-plt.show()
+#plt.figure(figsize=(18, 5))
+#plt.suptitle("Final estimates", fontsize=18)
+#plt.subplot(1, 4, 1)
+#plt.title("Real params")
+#plt.stem(params[0])
+#plt.subplot(1, 4, 2)
+#plt.title("ISTA")
+#plt.stem(x_ista[0], color='red')
+#plt.subplot(1, 4, 3)
+#plt.title("FISTA")
+#plt.stem(x_fista[0])
+#plt.subplot(1, 4, 4)
+#plt.title("GD")
+#plt.stem(x_gd[0])
+#plt.show()
 
-plt.figure(figsize=(17, 5))
-plt.subplot(1, 2, 1)
-plt.plot(gd_inspector.obj, 'b')
-plt.plot(ista_inspector.obj, 'r')
-plt.plot(fista_inspector.obj, 'g')
-plt.title("Loss", fontsize=18)
-plt.xlabel("iteration", fontsize=14)
-plt.ylabel("value", fontsize=14)
-plt.legend(["gd", "ista", "fista"])
-plt.subplot(1, 2, 2)
-plt.plot(gd_inspector.err, 'b')
-plt.plot(ista_inspector.err, 'r')
-plt.plot(fista_inspector.err, 'g')
-plt.title("Distance to x_real", fontsize=18)
-plt.xlabel("iteration", fontsize=14)
-plt.ylabel("distance", fontsize=14)
-plt.legend(["gd", "ista", "fista"])
-plt.show()
+#plt.figure(figsize=(17, 5))
+#plt.subplot(1, 2, 1)
+#plt.plot(gd_inspector.obj, 'b')
+#plt.plot(ista_inspector.obj, 'r')
+#plt.plot(fista_inspector.obj, 'g')
+#plt.title("Loss", fontsize=18)
+#plt.xlabel("iteration", fontsize=14)
+#plt.ylabel("value", fontsize=14)
+#plt.legend(["gd", "ista", "fista"])
+#plt.subplot(1, 2, 2)
+#plt.plot(gd_inspector.err, 'b')
+#plt.plot(ista_inspector.err, 'r')
+#plt.plot(fista_inspector.err, 'g')
+#plt.title("Distance to x_real", fontsize=18)
+#plt.xlabel("iteration", fontsize=14)
+#plt.ylabel("distance", fontsize=14)
+#plt.legend(["gd", "ista", "fista"])
+#plt.show()
+
+#newton_inspector = inspector(loss_fun=F, x_real=params, verbose=True)
+#x_newton = newton(x_init, hessian = hess_f, grad=grad_f, prox=prox_g, n_iter=n_iter, step=step, callback=newton_inspector)
+
+#plt.figure(figsize=(8,4))
+#plt.stem(x_newton[0])
+#plt.title("Newton", fontsize=16)
+#plt.show()
+
+from math import sqrt, log
+
+def ADMM(A,y):
+    "Alternating direction method of multipliers"
+    m,n = A.shape
+    A_t_A = A.T.dot(A)
+    w,v = np.linalg.eig(A_t_A)
+    MAX_ITER = 10000
+
+    #Function to caluculate min 1/2(y - Ax) + l||x||
+    #via alternating direction methods
+    x_hat = np.zeros([n,1])
+    z_hat = np.zeros([n, 1])
+    u = np.zeros([n, 1])
+
+     #Calculate regression co-efficient and stepsize
+    r = np.amax(np.absolute(w))
+    l_over_rho = sqrt(2*log(n, 10)) * r / 2.0 
+    rho = 1/r
+
+    #Pre-compute to save some multiplications
+    A_t_y = A.T.dot(y)
+    Q = A_t_A + rho * np.identity(n)
+    Q = np.linalg.inv(Q)
+    Q_dot = Q.dot
+    sign = np.sign
+    maximum = np.maximum
+    absolute = np.absolute
+
+    for _ in range(MAX_ITER):
+        #x minimisation step via posterier OLS
+        x_hat = Q_dot(A_t_y + rho*(z_hat - u))
+        #z minimisation via soft-thresholding
+        u = x_hat + u
+        z_hat = sign(u) * maximum(0, absolute(u)-l_over_rho)
+        #mulitplier update
+        u = u - z_hat
+
+    return z_hat
+
+def test(m=50, n=200):
+    """Test the ADMM method with randomly generated matrices and vectors"""
+    A = np.random.randn(m, n)
+
+    num_non_zeros = 10
+    positions = np.random.randint(0, n, num_non_zeros)
+    amplitudes = 100*np.random.randn(num_non_zeros, 1)
+    x = np.zeros((n, 1))
+    x[positions] = amplitudes
+
+    y = A.dot(x) + np.random.randn(m, 1)
+
+    plot(x, ADMM(A,y))
+
+def plot(original, computed):
+    """Plot two vectors to compare their values"""
+    plt.plot(original, label='Original')
+    plt.plot(computed, label='Estimate')
+
+    plt.legend(loc='upper right')
+
+    plt.show()
+
+test()
