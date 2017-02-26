@@ -30,6 +30,7 @@ def smooth_grad(w, mu):
     temp = np.multiply((np.abs(w)<=mu),w/mu) + np.multiply((np.abs(w)>mu),np.sign(w)) 
     return X.T*(X*w-y) + lamda * temp
 
+#Proximal gradient
 w = np.matrix([0.0]*dim).T
 obj_PG = []
 for t in range(0, max_iter):
@@ -40,3 +41,28 @@ for t in range(0, max_iter):
     obj_PG.append(obj_val.item())
     if (t%5==0):
         print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+
+## Nesterovs' Accelerated Proximal Gradient
+w = np.matrix([0.0]*dim).T
+v = w
+obj_APG = []
+gamma = 1/L
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w_prev = w
+    w = v - gamma * f_grad(v)
+    w = soft_threshod(w,lamda * gamma)
+    v = w + t/(t+3) * (w - w_prev)
+
+    obj_APG.append(obj_val.item())
+    if (t%5==0):
+        print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+
+t = np.arange(0, max_iter)
+fig, ax = plt.subplots(figsize = (9, 6))
+plt.semilogy(t, np.array(obj_PG), 'b', linewidth = 2, label = 'Proximal Gradient')
+plt.semilogy(t, np.array(obj_APG), 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
+plt.legend(prop={'size':12})
+plt.xlabel('Iteration')
+plt.ylabel('Objective error')
+plt.show()
