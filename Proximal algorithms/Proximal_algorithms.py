@@ -302,7 +302,6 @@ def plot(original, computed):
     """Plot two vectors to compare their values"""
     plt.plot(original, label='Original')
     plt.plot(computed, label='Estimate')
-
     plt.legend(loc='upper right')
 
     plt.show()

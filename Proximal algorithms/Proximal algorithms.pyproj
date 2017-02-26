@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>85a90a38-f46c-4ddc-b71f-e8bd6acb65bd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Proximal_algorithms.py</StartupFile>
+    <StartupFile>module2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -14,6 +14,7 @@
     <RootNamespace>Proximal algorithms</RootNamespace>
     <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,6 +25,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="module1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="module2.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Proximal_algorithms.py" />
   </ItemGroup>
   <ItemGroup>
