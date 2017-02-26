@@ -58,10 +58,26 @@ for t in range(0, max_iter):
     if (t%5==0):
         print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
 
+## ADMM
+w = np.matrix([0.0]*dim).T
+z = w
+u = w
+obj_ADMM = []
+rho = 5
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w = np.linalg.inv((X.T)*X + rho*np.identity(dim))*(X.T*y + rho*z - u )
+    z= soft_threshod(w + u/rho,lamda/rho)
+    u = u + rho * (w-z)
+    obj_ADMM.append(obj_val.item())
+    if (t%5==0):
+        print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+
 t = np.arange(0, max_iter)
 fig, ax = plt.subplots(figsize = (9, 6))
 plt.semilogy(t, np.array(obj_PG), 'b', linewidth = 2, label = 'Proximal Gradient')
 plt.semilogy(t, np.array(obj_APG), 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
+plt.semilogy(t, np.array(obj_ADMM), 'r', linewidth = 2, label = 'ADMM')
 plt.legend(prop={'size':12})
 plt.xlabel('Iteration')
 plt.ylabel('Objective error')
