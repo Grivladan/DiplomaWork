@@ -12,8 +12,8 @@
     <OutputPath>.</OutputPath>
     <Name>Proximal algorithms</Name>
     <RootNamespace>Proximal algorithms</RootNamespace>
-    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
-    <InterpreterVersion>3.5</InterpreterVersion>
+    <InterpreterId>{34b0850c-e949-4f1b-b72c-f447bb6c7a63}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -34,7 +34,7 @@
     <Compile Include="Proximal_algorithms.py" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
+    <InterpreterReference Include="{34b0850c-e949-4f1b-b72c-f447bb6c7a63}\2.7" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
