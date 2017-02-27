@@ -30,6 +30,16 @@ def smooth_grad(w, mu):
     temp = np.multiply((np.abs(w)<=mu),w/mu) + np.multiply((np.abs(w)>mu),np.sign(w)) 
     return X.T*(X*w-y) + lamda * temp
 
+import cvxpy as cvx
+
+w = cvx.Variable(dim)
+loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
+
+problem = cvx.Problem(cvx.Minimize(loss))
+problem.solve(verbose=True) 
+opt = problem.value
+print('Optimal Objective function value is: {}'.format(opt))
+
 #Proximal gradient
 w = np.matrix([0.0]*dim).T
 obj_PG = []
@@ -75,9 +85,9 @@ for t in range(0, max_iter):
 
 t = np.arange(0, max_iter)
 fig, ax = plt.subplots(figsize = (9, 6))
-plt.semilogy(t, np.array(obj_PG), 'b', linewidth = 2, label = 'Proximal Gradient')
-plt.semilogy(t, np.array(obj_APG), 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
-plt.semilogy(t, np.array(obj_ADMM), 'r', linewidth = 2, label = 'ADMM')
+plt.semilogy(t, np.array(obj_PG) - opt, 'b', linewidth = 2, label = 'Proximal Gradient')
+plt.semilogy(t, np.array(obj_APG) - opt, 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
+plt.semilogy(t, np.array(obj_ADMM) - opt, 'r', linewidth = 2, label = 'ADMM')
 plt.legend(prop={'size':12})
 plt.xlabel('Iteration')
 plt.ylabel('Objective error')
