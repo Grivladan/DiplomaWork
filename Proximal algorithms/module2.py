@@ -92,3 +92,25 @@ plt.legend(prop={'size':12})
 plt.xlabel('Iteration')
 plt.ylabel('Objective error')
 plt.show()
+
+#logistic loss 
+from sklearn import datasets
+from sklearn.preprocessing import normalize
+from scipy.special import expit as sigmoid
+
+N = 10000
+dim = 50
+lamda = 1e-4
+np.random.seed(1)
+w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
+X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
+X = np.matrix(normalize(X, axis=1, norm='l2'))
+y = 2 * (np.random.uniform(size = (N, 1)) < sigmoid(X*w)) - 1
+
+w = cvx.Variable(dim)
+loss = 1/N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda/2 * cvx.sum_squares(w)
+
+problem = cvx.Problem(cvx.Minimize(loss))
+problem.solve(verbose=True, abstol=1e-15) 
+opt = problem.value
+print('Optimal Objective function value is: {}'.format(opt))
