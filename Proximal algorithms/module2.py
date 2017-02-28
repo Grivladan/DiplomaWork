@@ -141,3 +141,12 @@ for t in range(0, max_iter):
     obj_GD.append(obj_val.item())
     
 print('Objective function value is: {}'.format(obj_GD[-1]))
+
+## Plot objective vs. iteration
+t = np.arange(0,num_pass)
+plt.plot(t, np.ones((len(t),1))*opt, 'k', linewidth = 2, label = 'Optimal')
+plt.plot(t, np.array(obj_GD), 'b', linewidth = 2, label = 'GD')
+plt.legend(prop={'size':12})
+plt.xlabel('No. of Passes')
+plt.ylabel('Objective')
+plt.show()
