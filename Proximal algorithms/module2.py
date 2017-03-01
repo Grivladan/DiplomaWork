@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import cvxpy as cvx
+import math
 
 #N = 100
 #dim = 50
@@ -129,30 +130,63 @@ def grad(w,X,y):
 def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-## Gradient Descent
-w = np.matrix([0.0]*dim).T
-obj_GD = []
-max_iter = num_pass
-for t in range(0, max_iter):
-    obj_val = obj(w)
-    w = w - 2.0/(L+lamda) * grad(w, X, y)
+### Gradient Descent
+#w = np.matrix([0.0]*dim).T
+#obj_GD = []
+#max_iter = num_pass
+#for t in range(0, max_iter):
+#    obj_val = obj(w)
+#    w = w - 2.0/(L+lamda) * grad(w, X, y)
     
-    obj_GD.append(obj_val.item())
+#    obj_GD.append(obj_val.item())
     
-print('Objective function value is: {}'.format(obj_GD[-1]))
+#print('Objective function value is: {}'.format(obj_GD[-1]))
 
-##Proximal gradient
+###Proximal gradient
+#w = np.matrix([0.0]*dim).T
+#obj_PGD = []
+#max_iter = num_pass
+#for t in range(0, max_iter):
+#    obj_val = obj(w)
+#    w = w - 2.0/(L+lamda) * grad(w, X, y)
+#    w= soft_threshod(w,lamda/L)
+    
+#    obj_PGD.append(obj_val.item())
+    
+#print('Objective function value is: {}'.format(obj_PGD[-1]))
+
+### Nesterovs' Accelerated Proximal Gradient
+#w = np.matrix([0.0]*dim).T
+#v = w
+#obj_NA = []
+#for t in range(0, max_iter):
+#    obj_val = obj(w)
+#    w_prev = w
+#    w = v - 2.0/(L+lamda)*grad(w, X, y)
+#    w = soft_threshod(w,lamda / L)
+#    v = w + t/(t+3) * (w - w_prev)
+
+#    obj_NA.append(obj_val.item())
+
+#print('Objective function value is: {}'.format(obj_NA[-1]))
+
+## ADMM
 w = np.matrix([0.0]*dim).T
-obj_PGD = []
+z = w
+u = w
+obj_ADMM = []
+rho = 5.0
 max_iter = num_pass
 for t in range(0, max_iter):
     obj_val = obj(w)
-    w = w - 2.0/(L+lamda) * grad(w, X, y)
-    w= soft_threshod(w,lamda/L)
-    
-    obj_PGD.append(obj_val.item())
-    
-print('Objective function value is: {}'.format(obj_PGD[-1]))
+    w = np.linalg.inv((X.T)*X + rho*np.identity(dim))*(X.T*y + rho*z - u)
+    z= soft_threshod(w + u/rho,lamda/rho)
+    u = u + rho * (w-z)
+    obj_ADMM.append(obj_val.item())
+    if (t%5==0):
+        print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+
+print('Objective function value is: {}'.format(obj_ADMM[-1]))
 
 ## Plot objective vs. iteration
 t = np.arange(0,num_pass)
