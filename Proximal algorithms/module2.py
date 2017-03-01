@@ -10,8 +10,6 @@ import cvxpy as cvx
 #X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
 #y = X*w
 
-#print(X)
-
 #L = (np.linalg.svd(X)[1][0])**2
 #print(L)
 #max_iter = 100
@@ -110,8 +108,6 @@ X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
 X = np.matrix(normalize(X, axis=1, norm='l2'))
 y = 2 * (np.random.uniform(size = (N, 1)) < sigmoid(X*w)) - 1
 
-print(X)
-
 w = cvx.Variable(dim)
 loss = 1.0 / N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda/2 * cvx.sum_squares(w)
 
@@ -130,6 +126,9 @@ def obj(w):
 def grad(w,X,y):
     return 1.0/X.shape[0] * X.T * np.multiply( y, sigmoid(np.multiply(y, X*w)) - 1) + lamda*w
 
+def soft_threshod(w,mu):
+    return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
+
 ## Gradient Descent
 w = np.matrix([0.0]*dim).T
 obj_GD = []
@@ -142,10 +141,24 @@ for t in range(0, max_iter):
     
 print('Objective function value is: {}'.format(obj_GD[-1]))
 
+##Proximal gradient
+w = np.matrix([0.0]*dim).T
+obj_PGD = []
+max_iter = num_pass
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w = w - 2.0/(L+lamda) * grad(w, X, y)
+    w= soft_threshod(w,lamda/L)
+    
+    obj_PGD.append(obj_val.item())
+    
+print('Objective function value is: {}'.format(obj_PGD[-1]))
+
 ## Plot objective vs. iteration
 t = np.arange(0,num_pass)
 plt.plot(t, np.ones((len(t),1))*opt, 'k', linewidth = 2, label = 'Optimal')
 plt.plot(t, np.array(obj_GD), 'b', linewidth = 2, label = 'GD')
+plt.plot(t, np.array(obj_PGD), 'y', linewidth = 1, label = 'PGD')
 plt.legend(prop={'size':12})
 plt.xlabel('No. of Passes')
 plt.ylabel('Objective')
