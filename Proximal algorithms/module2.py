@@ -130,45 +130,69 @@ def grad(w,X,y):
 def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-### Gradient Descent
-#w = np.matrix([0.0]*dim).T
-#obj_GD = []
-#max_iter = num_pass
-#for t in range(0, max_iter):
-#    obj_val = obj(w)
-#    w = w - 2.0/(L+lamda) * grad(w, X, y)
+## Gradient Descent
+w = np.matrix([0.0]*dim).T
+obj_GD = []
+max_iter = num_pass
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w = w - 2.0/(L+lamda) * grad(w, X, y)
     
-#    obj_GD.append(obj_val.item())
+    obj_GD.append(obj_val.item())
     
-#print('Objective function value is: {}'.format(obj_GD[-1]))
+print('Objective function value is: {}'.format(obj_GD[-1]))
 
-###Proximal gradient
-#w = np.matrix([0.0]*dim).T
-#obj_PGD = []
-#max_iter = num_pass
-#for t in range(0, max_iter):
-#    obj_val = obj(w)
-#    w = w - 2.0/(L+lamda) * grad(w, X, y)
-#    w= soft_threshod(w,lamda/L)
+##Proximal gradient
+w = np.matrix([0.0]*dim).T
+obj_PGD = []
+max_iter = num_pass
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w = w - 2.0/(L+lamda) * grad(w, X, y)
+    w= soft_threshod(w,lamda/L)
     
-#    obj_PGD.append(obj_val.item())
+    obj_PGD.append(obj_val.item())
     
-#print('Objective function value is: {}'.format(obj_PGD[-1]))
+print('Objective function value is: {}'.format(obj_PGD[-1]))
 
-### Nesterovs' Accelerated Proximal Gradient
-#w = np.matrix([0.0]*dim).T
-#v = w
-#obj_NA = []
-#for t in range(0, max_iter):
-#    obj_val = obj(w)
-#    w_prev = w
-#    w = v - 2.0/(L+lamda)*grad(w, X, y)
-#    w = soft_threshod(w,lamda / L)
-#    v = w + t/(t+3) * (w - w_prev)
+## Nesterovs' Accelerated Proximal Gradient
+w = np.matrix([0.0]*dim).T
+v = w
+obj_NA = []
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w_prev = w
+    w = v - 2.0/(L+lamda)*grad(w, X, y)
+    w = soft_threshod(w,lamda / L)
+    v = w + t/(t+3) * (w - w_prev)
 
-#    obj_NA.append(obj_val.item())
+    obj_NA.append(obj_val.item())
 
-#print('Objective function value is: {}'.format(obj_NA[-1]))
+print('Objective function value is: {}'.format(obj_NA[-1]))
+
+## Nesterovs' Accelerated Proximal Gradient with Backtracking
+w = np.matrix([0.0]*dim).T
+v = w
+obj_APG_LS = []
+L=1
+gamma = 1/L
+beta = 1.2
+for t in range(0, max_iter):
+    obj_val = obj(w)
+    w_prev = w
+    delta = 1
+    while (delta>1e-3):
+        gamma = 1/L
+        w = v - gamma * grad(v,X,y)    
+        w = soft_threshod(w,lamda * gamma)
+        delta = obj(w) - obj_val - grad(w_prev,X,y).T*(w-w_prev)- (L/2) * np.linalg.norm(w-w_prev)**2
+        L = L*beta
+    L = L/beta    
+    v = w + t/(t+3) * (w - w_prev)
+
+    obj_APG_LS.append(obj_val.item())
+    if (t%5==0):
+        print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
 
 ## ADMM
 w = np.matrix([0.0]*dim).T
