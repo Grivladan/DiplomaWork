@@ -27,10 +27,6 @@ def f_grad(X, y, w):
 def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-def smooth_grad(w, mu):
-    temp = np.multiply((np.abs(w)<=mu),w/mu) + np.multiply((np.abs(w)>mu),np.sign(w)) 
-    return X.T*(X*w-y) + lamda * temp
-
 w = cvx.Variable(dim)
 loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
 
@@ -52,6 +48,20 @@ def proximal_grad(A,y, f_grad, prox):
         if (t%5==0):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_PG
+
+#Proximal Newton
+def proximal_newton(A,y, f_grad, hess, prox):
+    w = np.matrix([0.0]*dim).T
+    obj_NP = []
+    for t in range(0, max_iter):
+        obj_val = obj(w)
+        w = w - (1/L)* f_grad(A, y, w)
+        w= prox(w,lamda/L)
+    
+        obj_NP.append(obj_val.item())
+        if (t%5==0):
+            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+    return obj_NP
 
 # Nesterovs' Accelerated Proximal Gradient
 def accelerated_proximal_gradient(A, y, f_grad, prox):
