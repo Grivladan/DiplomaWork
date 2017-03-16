@@ -4,7 +4,7 @@ import cvxpy as cvx
 import math
 
 N = 100
-dim = 50
+dim = 30
 lamda = 1/np.sqrt(N);
 np.random.seed(50)
 w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
@@ -73,9 +73,9 @@ def accelerated_proximal_gradient(A, y, f_grad, prox):
     for t in range(0, max_iter):
         obj_val = obj(w)
         w_prev = w
-        w = v - gamma * f_grad(A, y,v)
+        w = v - gamma * f_grad(A,y,v)
         w = soft_threshod(w,lamda * gamma)
-        v = w + t/(t+3) * (w - w_prev)
+        v = w + t/(t+3.0) * (w - w_prev)
 
         obj_APG.append(obj_val.item())
         if (t%5==0):
