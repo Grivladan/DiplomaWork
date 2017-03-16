@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>85a90a38-f46c-4ddc-b71f-e8bd6acb65bd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>envelopes.py</StartupFile>
+    <StartupFile>module2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

@@ -49,19 +49,20 @@ def proximal_grad(A,y, f_grad, prox):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_PG
 
-#Proximal Newton
-def proximal_newton(A,y, f_grad, hess, prox):
+#ISTA
+def iterative_shrinkage(A,y, f_grad, prox):
     w = np.matrix([0.0]*dim).T
-    obj_NP = []
+    obj_ISTA = []
     for t in range(0, max_iter):
         obj_val = obj(w)
-        w = w - (1/L)* f_grad(A, y, w)
+        w = w - (1/L)* A.T*(A*w - y)
         w= prox(w,lamda/L)
     
-        obj_NP.append(obj_val.item())
+        obj_ISTA.append(obj_val.item())
         if (t%5==0):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
-    return obj_NP
+    return obj_ISTA
+
 
 # Nesterovs' Accelerated Proximal Gradient
 def accelerated_proximal_gradient(A, y, f_grad, prox):
@@ -98,14 +99,23 @@ def ADMM(A, y, f_grad, prox):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_ADMM
 
+print('Proximal gradient')
 obj_PG = proximal_grad(X, y, f_grad, soft_threshod)
+
+print('Accelerated proximal gradient')
 obj_APG = accelerated_proximal_gradient(X, y, f_grad, soft_threshod)
+
+print('Ista algorithm')
+obj_ISTA = iterative_shrinkage(X, y, f_grad, soft_threshod)
+
+print('Alternating direction multipliers method')
 obj_ADMM = ADMM(X, y, f_grad, soft_threshod)
 
 t = np.arange(0, max_iter)
 fig, ax = plt.subplots(figsize = (9, 6))
 plt.semilogy(t, np.array(obj_PG) - opt, 'b', linewidth = 2, label = 'Proximal Gradient')
 plt.semilogy(t, np.array(obj_APG) - opt, 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
+plt.semilogy(t, np.array(obj_ISTA) - opt, 'g', linewidth = 2, label = 'ISTA')
 plt.semilogy(t, np.array(obj_ADMM) - opt, 'r', linewidth = 2, label = 'ADMM')
 plt.legend(prop={'size':12})
 plt.xlabel('Iteration')
