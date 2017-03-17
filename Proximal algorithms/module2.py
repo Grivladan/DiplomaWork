@@ -27,6 +27,9 @@ def f_grad(X, y, w):
 def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
+def hess(X):
+    return 2*X.T*X
+
 w = cvx.Variable(dim)
 loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
 
@@ -49,8 +52,22 @@ def proximal_grad(A,y, f_grad, prox):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_PG
 
+#Proximal Newton
+def proximal_newton(A, y, f_grad, f_hess, prox):
+    w = np.matrix([0.0]*dim).T
+    obj_PN = []
+    for t in range(0, max_iter):
+        obj_val = obj(w)
+        w = w - (1/L)* np.linalg.inv(f_hess(A))*f_grad(A, y, w)
+        w= prox(w,lamda/L)
+    
+        obj_PN.append(obj_val.item())
+        if (t%5==0):
+            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+    return obj_PN
+
 #ISTA
-def iterative_shrinkage(A,y, f_grad, prox):
+def iterative_shrinkage(A, y, f_grad, prox):
     w = np.matrix([0.0]*dim).T
     obj_ISTA = []
     for t in range(0, max_iter):
@@ -105,9 +122,14 @@ obj_PG = proximal_grad(X, y, f_grad, soft_threshod)
 print('Accelerated proximal gradient')
 obj_APG = accelerated_proximal_gradient(X, y, f_grad, soft_threshod)
 
+"""
+print('Proximal Newton')
+obj_APG = proximal_newton(X, y, f_grad, hess, soft_threshod)
+"""
+
 print('Ista algorithm')
 obj_ISTA = iterative_shrinkage(X, y, f_grad, soft_threshod)
-
+ 
 print('Alternating direction multipliers method')
 obj_ADMM = ADMM(X, y, f_grad, soft_threshod)
 
