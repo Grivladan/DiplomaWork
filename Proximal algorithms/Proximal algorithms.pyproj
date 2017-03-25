@@ -31,7 +31,6 @@
     <Compile Include="module2.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Proximal_algorithms.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="{34b0850c-e949-4f1b-b72c-f447bb6c7a63}\2.7" />
