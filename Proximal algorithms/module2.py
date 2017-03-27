@@ -3,47 +3,47 @@ from matplotlib import pyplot as plt
 import cvxpy as cvx
 import math
 
-#N = 100
-#dim = 30
-#lamda = 1/np.sqrt(N);
-#np.random.seed(50)
-#w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
-#X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
-#y = X*w
+N = 100
+dim = 30
+lamda = 1/np.sqrt(N);
+np.random.seed(50)
+w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
+X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
+y = X*w
 
-#L = (np.linalg.svd(X)[1][0])**2
-#max_iter = 100
-#step = 1.0 / L
+L = (np.linalg.svd(X)[1][0])**2
+max_iter = 100
+step = 1.0 / L
 
-#def obj(w):
-#    r = X*w-y;
-#    return np.sum(np.multiply(r,r))/2 +  lamda * np.sum(np.abs(w))
+def obj(w):
+    r = X*w-y;
+    return np.sum(np.multiply(r,r))/2 +  lamda * np.sum(np.abs(w))
 
-#def subgrad(X, y, w):
-#    return  X.T*(X*w-y) + lamda*np.sign(w) 
+def subgrad(X, y, w):
+    return  X.T*(X*w-y) + lamda*np.sign(w) 
 
-#def f_grad(X, y, w):
-#    return  X.T*(X*w-y) 
+def f_grad(X, y, w):
+    return  X.T*(X*w-y) 
 
-#def soft_threshod(w,mu):
-#    return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
+def soft_threshod(w,mu):
+    return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-#def hess(X):
-#    hessian = np.ones((dim,dim+1))
-#    for i in range(dim):
-#        hessian[i,0] = 1
-#    for i in range(dim):
-#        for j in range(dim):
-#            hessian[i, j+1] = X[i, j]
-#    return np.dot(hessian,hessian.T)
+def hess(X):
+    hessian = np.ones((dim,dim+1))
+    for i in range(dim):
+        hessian[i,0] = 1
+    for i in range(dim):
+        for j in range(dim):
+            hessian[i, j+1] = X[i, j]
+    return np.dot(hessian,hessian.T)
 
-#w = cvx.Variable(dim)
-#loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
+w = cvx.Variable(dim)
+loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
 
-#problem = cvx.Problem(cvx.Minimize(loss))
-#problem.solve(verbose=True) 
-#opt = problem.value
-#print('Optimal Objective function value is: {}'.format(opt))
+problem = cvx.Problem(cvx.Minimize(loss))
+problem.solve(verbose=True) 
+opt = problem.value
+print('Optimal Objective function value is: {}'.format(opt))
 
 #Proximal gradient
 def proximal_grad(A, y, f_grad, prox, step):
@@ -88,7 +88,7 @@ def iterative_shrinkage(A, y, f_grad, prox, step):
     return obj_ISTA
 
 
-# Nesterovs' Accelerated Proximal Gradient
+#Nesterovs' Accelerated Proximal Gradient
 def accelerated_proximal_gradient(A, y, f_grad, prox, step):
     w = np.matrix([0.0]*dim).T
     v = w
@@ -105,7 +105,7 @@ def accelerated_proximal_gradient(A, y, f_grad, prox, step):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_APG
 
-# ADMM
+ #ADMM
 def ADMM(A, y, f_grad, prox):
     w = np.matrix([0.0]*dim).T
     z = w
@@ -122,35 +122,33 @@ def ADMM(A, y, f_grad, prox):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_ADMM
 
-#print('Objective function value is: {}'.format(obj_ADMM[-1]))
+print('Proximal gradient')
+obj_PG = proximal_grad(X, y, f_grad, soft_threshod,step)
 
-#print('Proximal gradient')
-#obj_PG = proximal_grad(X, y, f_grad, soft_threshod,step)
+print('Accelerated proximal gradient')
+obj_APG = accelerated_proximal_gradient(X, y, f_grad, soft_threshod, step)
 
-#print('Accelerated proximal gradient')
-#obj_APG = accelerated_proximal_gradient(X, y, f_grad, soft_threshod, step)
+"""
+print('Proximal Newton')
+obj_APG = proximal_newton(X, y, f_grad, hess, soft_threshod, step)
+"""
 
-#"""
-#print('Proximal Newton')
-#obj_APG = proximal_newton(X, y, f_grad, hess, soft_threshod, step)
-#"""
-
-#print('Ista algorithm')
-#obj_ISTA = iterative_shrinkage(X, y, f_grad, soft_threshod, step)
+print('Ista algorithm')
+obj_ISTA = iterative_shrinkage(X, y, f_grad, soft_threshod, step)
  
-#print('Alternating direction multipliers method')
-#obj_ADMM = ADMM(X, y, f_grad, soft_threshod)
+print('Alternating direction multipliers method')
+obj_ADMM = ADMM(X, y, f_grad, soft_threshod)
 
-#t = np.arange(0, max_iter)
-#fig, ax = plt.subplots(figsize = (9, 6))
-#plt.semilogy(t, np.array(obj_PG) - opt, 'b', linewidth = 2, label = 'Proximal Gradient')
-#plt.semilogy(t, np.array(obj_APG) - opt, 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
-#plt.semilogy(t, np.array(obj_ISTA) - opt, 'g', linewidth = 2, label = 'ISTA')
-#plt.semilogy(t, np.array(obj_ADMM) - opt, 'r', linewidth = 2, label = 'ADMM')
-#plt.legend(prop={'size':12})
-#plt.xlabel('Iteration')
-#plt.ylabel('Objective error')
-#plt.show()
+t = np.arange(0, max_iter)
+fig, ax = plt.subplots(figsize = (9, 6))
+plt.semilogy(t, np.array(obj_PG) - opt, 'b', linewidth = 2, label = 'Proximal Gradient')
+plt.semilogy(t, np.array(obj_APG) - opt, 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
+plt.semilogy(t, np.array(obj_ISTA) - opt, 'g', linewidth = 2, label = 'ISTA')
+plt.semilogy(t, np.array(obj_ADMM) - opt, 'r', linewidth = 2, label = 'ADMM')
+plt.legend(prop={'size':12})
+plt.xlabel('Iteration')
+plt.ylabel('Objective error')
+plt.show()
 
 #logistic loss 
 from sklearn import datasets
@@ -160,14 +158,14 @@ from scipy.special import expit as sigmoid
 N = 10000
 dim = 50
 lamda = 1e-4
-np.random.seed(1)
+np.random.seed(20)
 w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
 X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
 X = np.matrix(normalize(X, axis=1, norm='l2'))
 y = 2 * (np.random.uniform(size = (N, 1)) < sigmoid(X*w)) - 1
 
 w = cvx.Variable(dim)
-loss = 1.0 / N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda/2 * cvx.sum_squares(w)
+loss = 1.0 / N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda * cvx.norm(w,2)
 
 problem = cvx.Problem(cvx.Minimize(loss))
 problem.solve(verbose=True, abstol=1e-15) 
@@ -188,7 +186,7 @@ def grad(X,y,w):
 def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-## Gradient Descent
+# Gradient Descent
 def gradient_descent(X, y, grad, step):
     w = np.matrix([0.0]*dim).T
     obj_GD = []
@@ -199,6 +197,23 @@ def gradient_descent(X, y, grad, step):
         if (t%5==0):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_GD
+
+LL = np.diag(X.T*X)/4+lamda
+## Cyclic Coordinate Gradient Descent
+def cyclic_gradient(X, y, grad, step):
+    w = np.matrix([0.0]*dim).T
+    obj_CCGD = []
+    for t in range(0, max_iter):
+        obj_val = obj(w)
+        for i in range(0,dim):
+            w[i] = w[i] - step * grad(X, y, w)[i]
+            # larger stepsize
+            w[i] = w[i] - 1/LL[i] * grad(X,y,w)[i]
+
+        obj_CCGD.append(obj_val.item())
+        if (t%5==0):
+            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+    return obj_CCGD
 
 ### Nesterovs' Accelerated Proximal Gradient with Backtracking
 def backtracking_nesterov_acceleration(X, y, grad, prox):
@@ -241,6 +256,9 @@ obj_ADMM = ADMM(X, y, grad, soft_threshod)
 print('Nesterov acceleration with backtracking')
 obj_APG_LS = backtracking_nesterov_acceleration(X, y, grad, soft_threshod)
 
+print('Cyclic Coordinate gradient')
+obj_CCGD = cyclic_gradient(X, y, grad, step)
+
 #print('ISTA method')
 #obj_ISTA = iterative_shrinkage(X, y, grad, soft_threshod, step)
 
@@ -252,7 +270,9 @@ plt.plot(t, np.array(obj_PG), 'y', linewidth = 1, label = 'PGD')
 plt.plot(t, np.array(obj_APG), 'r', linewidth = 2, label = 'APG')
 plt.plot(t, np.array(obj_APG_LS), 'r--', linewidth = 2, label = 'APG_LS')
 plt.plot(t, np.array(obj_ADMM), 'g', linewidth = 2, label = 'ADMM')
+plt.plot(t, np.array(obj_CCGD), 'c', linewidth = 2, label = 'Cyclic Coordinate Gradient')
 plt.legend(prop={'size':12})
 plt.xlabel('No. of Passes')
 plt.ylabel('Objective')
 plt.show()
+
