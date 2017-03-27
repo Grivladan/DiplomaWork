@@ -52,3 +52,5 @@ plt.show()
 plt.plot(np.log10(En_array-En_array.min()))
 plt.show()
 
+
+
