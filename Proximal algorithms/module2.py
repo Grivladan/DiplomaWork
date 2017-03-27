@@ -75,6 +75,22 @@ def forward_backward(A, y, f_grad, prox, step):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_FBE
 
+#Nesterow acceleration forward-backward envelope
+def accelerated_forward_backward(A, y, f_grad, prox, step):
+    w = np.matrix([0.0]*dim).T
+    obj_AFBE = []
+    for t in range(0, max_iter):
+        obj_val = obj(w)
+        z = w - step* f_grad(A, y, w)
+        z= prox(z,lamda/L)
+        alpha = t / (t+3.0)
+        w = z + alpha*(z - w)
+    
+        obj_AFBE.append(obj_val.item())
+        if (t%5==0):
+            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+    return obj_AFBE
+
 #Proximal Newton
 def proximal_newton(A, y, f_grad, f_hess, prox, step):
     w = np.matrix([0.0]*dim).T
@@ -158,13 +174,17 @@ obj_ADMM = ADMM(X, y, f_grad, soft_threshod)
 print('Forward-Backward envelope')
 obj_FBE = forward_backward(X, y, f_grad, soft_threshod, step)
 
+print('Accelerated forward-backward envelope')
+obj_AFBE = accelerated_forward_backward(X, y, f_grad, soft_threshod, step)
+
 t = np.arange(0, max_iter)
 fig, ax = plt.subplots(figsize = (9, 6))
 plt.semilogy(t, np.array(obj_PG) - opt, 'b', linewidth = 2, label = 'Proximal Gradient')
 plt.semilogy(t, np.array(obj_APG) - opt, 'c--', linewidth = 2, label = 'Accelerated Proximal Gradient')
 plt.semilogy(t, np.array(obj_ISTA) - opt, 'g', linewidth = 2, label = 'ISTA')
 plt.semilogy(t, np.array(obj_ADMM) - opt, 'r', linewidth = 2, label = 'ADMM')
-plt.semilogy(t, np.array(obj_FBE) - opt, 'r', linewidth = 2, label = 'FBE')
+plt.semilogy(t, np.array(obj_FBE) - opt, 'r', linewidth = 2, label = 'Forward-Backward envelope')
+plt.semilogy(t, np.array(obj_AFBE) - opt, 'g', linewidth = 2, label = 'Accelerated forward-backward')
 plt.legend(prop={'size':12})
 plt.xlabel('Iteration')
 plt.ylabel('Objective error')
