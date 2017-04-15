@@ -91,6 +91,25 @@ def accelerated_forward_backward(A, y, f_grad, prox, step):
             print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
     return obj_AFBE
 
+pA = np.linalg.pinv(X) # pseudo-inverse. Equivalent to pA = A.T.dot(inv(A.dot(A.T)))
+def prox_f (A, x, y) :
+    return x + pA.dot(y-A.dot(x))
+#Douglas_Rachford envelope
+def douglas_rachford(A, y, f_grad, f_prox, g_prox, step):
+    w = np.matrix([0.0]*dim).T
+    s = np.matrix([0.0]*dim).T
+    rho = 1
+    obj_ = []
+    for t in range(0, max_iter):
+        obj_val = obj(w)
+        w = f_prox(s, y)
+        s = s + rho * (g_prox(2*w - s, gamma) - w)
+
+        obj_DRE.append(obj_val.item())
+        if (t%5==0):
+            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+    return obj_DRE
+
 #Proximal Newton
 def proximal_newton(A, y, f_grad, f_hess, prox, step):
     w = np.matrix([0.0]*dim).T
@@ -191,128 +210,128 @@ plt.ylabel('Objective error')
 plt.show()
 
 #logistic loss 
-from sklearn import datasets
-from sklearn.preprocessing import normalize
-from scipy.special import expit as sigmoid
+#from sklearn import datasets
+#from sklearn.preprocessing import normalize
+#from scipy.special import expit as sigmoid
 
-N = 10000
-dim = 50
-lamda = 1e-4
-np.random.seed(20)
-w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
-X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
-X = np.matrix(normalize(X, axis=1, norm='l2'))
-y = 2 * (np.random.uniform(size = (N, 1)) < sigmoid(X*w)) - 1
+#N = 10000
+#dim = 50
+#lamda = 1e-4
+#np.random.seed(20)
+#w = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim))).T
+#X = np.matrix(np.random.multivariate_normal([0.0]*dim, np.eye(dim), size = N))
+#X = np.matrix(normalize(X, axis=1, norm='l2'))
+#y = 2 * (np.random.uniform(size = (N, 1)) < sigmoid(X*w)) - 1
 
-w = cvx.Variable(dim)
-loss = 1.0 / N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda * cvx.norm(w,2)
+#w = cvx.Variable(dim)
+#loss = 1.0 / N * cvx.sum_entries(cvx.logistic(-cvx.mul_elemwise(y, X*w))) + lamda * cvx.norm(w,2)
 
-problem = cvx.Problem(cvx.Minimize(loss))
-problem.solve(verbose=True, abstol=1e-15) 
-opt = problem.value
-print('Optimal Objective function value is: {}'.format(opt))
+#problem = cvx.Problem(cvx.Minimize(loss))
+#problem.solve(verbose=True, abstol=1e-15) 
+#opt = problem.value
+#print('Optimal Objective function value is: {}'.format(opt))
 
-L = lamda + 1.0/4;
-max_iter = 100
-step = 2.0/(L+lamda)
+#L = lamda + 1.0/4;
+#max_iter = 100
+#step = 2.0/(L+lamda)
 
-## Define the objective and gradient oracles. 
-def obj(w):
-    return 1.0/N * np.sum( np.log(1 + np.exp(-np.multiply(y, (X*w)))) ) + 1.0/2 * lamda * (w.T*w)
+### Define the objective and gradient oracles. 
+#def obj(w):
+#    return 1.0/N * np.sum( np.log(1 + np.exp(-np.multiply(y, (X*w)))) ) + 1.0/2 * lamda * (w.T*w)
 
-def grad(X,y,w):
-    return 1.0/X.shape[0] * X.T * np.multiply( y, sigmoid(np.multiply(y, X*w)) - 1) + lamda*w
+#def grad(X,y,w):
+#    return 1.0/X.shape[0] * X.T * np.multiply( y, sigmoid(np.multiply(y, X*w)) - 1) + lamda*w
 
-def soft_threshod(w,mu):
-    return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
+#def soft_threshod(w,mu):
+#    return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
-# Gradient Descent
-def gradient_descent(X, y, grad, step):
-    w = np.matrix([0.0]*dim).T
-    obj_GD = []
-    for t in range(0, max_iter):
-        obj_val = obj(w)
-        w = w - step * grad(X, y, w)
-        obj_GD.append(obj_val.item())
-        if (t%5==0):
-            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
-    return obj_GD
+## Gradient Descent
+#def gradient_descent(X, y, grad, step):
+#    w = np.matrix([0.0]*dim).T
+#    obj_GD = []
+#    for t in range(0, max_iter):
+#        obj_val = obj(w)
+#        w = w - step * grad(X, y, w)
+#        obj_GD.append(obj_val.item())
+#        if (t%5==0):
+#            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+#    return obj_GD
 
-LL = np.diag(X.T*X)/4+lamda
-## Cyclic Coordinate Gradient Descent
-def cyclic_gradient(X, y, grad, step):
-    w = np.matrix([0.0]*dim).T
-    obj_CCGD = []
-    for t in range(0, max_iter):
-        obj_val = obj(w)
-        for i in range(0,dim):
-            w[i] = w[i] - step * grad(X, y, w)[i]
-            # larger stepsize
-            w[i] = w[i] - 1/LL[i] * grad(X,y,w)[i]
+#LL = np.diag(X.T*X)/4+lamda
+### Cyclic Coordinate Gradient Descent
+#def cyclic_gradient(X, y, grad, step):
+#    w = np.matrix([0.0]*dim).T
+#    obj_CCGD = []
+#    for t in range(0, max_iter):
+#        obj_val = obj(w)
+#        for i in range(0,dim):
+#            w[i] = w[i] - step * grad(X, y, w)[i]
+#            # larger stepsize
+#            w[i] = w[i] - 1/LL[i] * grad(X,y,w)[i]
 
-        obj_CCGD.append(obj_val.item())
-        if (t%5==0):
-            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
-    return obj_CCGD
+#        obj_CCGD.append(obj_val.item())
+#        if (t%5==0):
+#            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+#    return obj_CCGD
 
-### Nesterovs' Accelerated Proximal Gradient with Backtracking
-def backtracking_nesterov_acceleration(X, y, grad, prox):
-    w = np.matrix([0.0]*dim).T
-    v = w
-    obj_APG_LS = []
-    L=1
-    gamma = 1/L
-    beta = 1.2
-    for t in range(0, max_iter):
-        obj_val = obj(w)
-        w_prev = w
-        delta = 1
-        while (delta>1e-3):
-            gamma = 1/L
-            w = v - gamma * grad(X,y,v)    
-            w = prox(w,lamda * gamma)
-            delta = obj(w) - obj_val - grad(X, y, w_prev).T*(w-w_prev)- (L/2) * np.linalg.norm(w-w_prev)**2
-            L = L*beta
-        L = L/beta    
-        v = w + t/(t+3) * (w - w_prev)
+#### Nesterovs' Accelerated Proximal Gradient with Backtracking
+#def backtracking_nesterov_acceleration(X, y, grad, prox):
+#    w = np.matrix([0.0]*dim).T
+#    v = w
+#    obj_APG_LS = []
+#    L=1
+#    gamma = 1/L
+#    beta = 1.2
+#    for t in range(0, max_iter):
+#        obj_val = obj(w)
+#        w_prev = w
+#        delta = 1
+#        while (delta>1e-3):
+#            gamma = 1/L
+#            w = v - gamma * grad(X,y,v)    
+#            w = prox(w,lamda * gamma)
+#            delta = obj(w) - obj_val - grad(X, y, w_prev).T*(w-w_prev)- (L/2) * np.linalg.norm(w-w_prev)**2
+#            L = L*beta
+#        L = L/beta    
+#        v = w + t/(t+3) * (w - w_prev)
 
-        obj_APG_LS.append(obj_val.item())
-        if (t%5==0):
-            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
-    return obj_APG_LS 
+#        obj_APG_LS.append(obj_val.item())
+#        if (t%5==0):
+#            print('iter= {},\tobjective= {:3f}'.format(t, obj_val.item()))
+#    return obj_APG_LS 
 
-print('Gradient descent')
-obj_GD = gradient_descent(X, y, grad, step)
+#print('Gradient descent')
+#obj_GD = gradient_descent(X, y, grad, step)
 
-print('Proximal gradient')
-obj_PG = proximal_grad(X, y, grad, soft_threshod, step)
+#print('Proximal gradient')
+#obj_PG = proximal_grad(X, y, grad, soft_threshod, step)
 
-print('Accelerated proximal gradient')
-obj_APG = accelerated_proximal_gradient(X, y, grad, soft_threshod, step)
+#print('Accelerated proximal gradient')
+#obj_APG = accelerated_proximal_gradient(X, y, grad, soft_threshod, step)
 
-print('ADMM method')
-obj_ADMM = ADMM(X, y, grad, soft_threshod)
+#print('ADMM method')
+#obj_ADMM = ADMM(X, y, grad, soft_threshod)
 
-print('Nesterov acceleration with backtracking')
-obj_APG_LS = backtracking_nesterov_acceleration(X, y, grad, soft_threshod)
+#print('Nesterov acceleration with backtracking')
+#obj_APG_LS = backtracking_nesterov_acceleration(X, y, grad, soft_threshod)
 
-print('Cyclic Coordinate gradient')
-obj_CCGD = cyclic_gradient(X, y, grad, step)
+#print('Cyclic Coordinate gradient')
+#obj_CCGD = cyclic_gradient(X, y, grad, step)
 
-#print('ISTA method')
-#obj_ISTA = iterative_shrinkage(X, y, grad, soft_threshod, step)
+##print('ISTA method')
+##obj_ISTA = iterative_shrinkage(X, y, grad, soft_threshod, step)
 
-## Plot objective vs. iteration
-t = np.arange(0,max_iter)
-plt.plot(t, np.ones((len(t),1))*opt, 'k', linewidth = 2, label = 'Optimal')
-plt.plot(t, np.array(obj_GD), 'b', linewidth = 2, label = 'GD')
-plt.plot(t, np.array(obj_PG), 'y', linewidth = 1, label = 'PGD')
-plt.plot(t, np.array(obj_APG), 'r', linewidth = 2, label = 'APG')
-plt.plot(t, np.array(obj_APG_LS), 'r--', linewidth = 2, label = 'APG_LS')
-plt.plot(t, np.array(obj_ADMM), 'g', linewidth = 2, label = 'ADMM')
-plt.plot(t, np.array(obj_CCGD), 'c', linewidth = 2, label = 'Cyclic Coordinate Gradient')
-plt.legend(prop={'size':12})
-plt.xlabel('No. of Passes')
-plt.ylabel('Objective')
-plt.show()
+### Plot objective vs. iteration
+#t = np.arange(0,max_iter)
+#plt.plot(t, np.ones((len(t),1))*opt, 'k', linewidth = 2, label = 'Optimal')
+#plt.plot(t, np.array(obj_GD), 'b', linewidth = 2, label = 'GD')
+#plt.plot(t, np.array(obj_PG), 'y', linewidth = 1, label = 'PGD')
+#plt.plot(t, np.array(obj_APG), 'r', linewidth = 2, label = 'APG')
+#plt.plot(t, np.array(obj_APG_LS), 'r--', linewidth = 2, label = 'APG_LS')
+#plt.plot(t, np.array(obj_ADMM), 'g', linewidth = 2, label = 'ADMM')
+#plt.plot(t, np.array(obj_CCGD), 'c', linewidth = 2, label = 'Cyclic Coordinate Gradient')
+#plt.legend(prop={'size':12})
+#plt.xlabel('No. of Passes')
+#plt.ylabel('Objective')
+#plt.show()
 

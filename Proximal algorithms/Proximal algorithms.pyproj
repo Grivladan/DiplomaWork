@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>85a90a38-f46c-4ddc-b71f-e8bd6acb65bd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>module2.py</StartupFile>
+    <StartupFile>CancerTest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,6 +25,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CancerTest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="envelopes.py">
       <SubType>Code</SubType>
     </Compile>
