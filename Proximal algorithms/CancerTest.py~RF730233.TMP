@@ -1,6 +1,6 @@
 import numpy as np
 np.set_printoptions(threshold=np.nan)
-np.set_printoptions(precision=3, linewidth = 120)
+np.set_printoptions(precision=4)
 
 F = open("ALLDATA.DAT", "r" )
 testData = F.readlines()
