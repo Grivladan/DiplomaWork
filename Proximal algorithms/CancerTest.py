@@ -58,6 +58,7 @@ X = np.delete(X, 15, 1)
 #for i in range(44, 54):
 #    print(testData[i])
 
+#solve with cvxpy library
 w = cvx.Variable(15)
 w0 = cvx.Variable(1)
 loss = cvx.sum_squares(y - X*w - w0)
@@ -66,3 +67,9 @@ problem = cvx.Problem(cvx.Minimize(loss))
 problem.solve(verbose=True) 
 opt = problem.value
 print('Optimal Objective function value is: {}'.format(opt))
+
+
+#solve with least squares method
+X = np.c_[ np.ones(36), X ] 
+print(X)
+least_squares_solution = np.linalg.lstsq(X, y)
