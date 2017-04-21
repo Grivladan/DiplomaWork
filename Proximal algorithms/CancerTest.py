@@ -1,5 +1,7 @@
 import numpy as np
 import cvxpy as cvx
+import operator 
+
 np.set_printoptions(threshold=np.nan)
 np.set_printoptions(precision=3, linewidth = 120)
 
@@ -71,5 +73,19 @@ print('Optimal Objective function value is: {}'.format(opt))
 
 #solve with least squares method
 X = np.c_[ np.ones(36), X ] 
-print(X)
-least_squares_solution = np.linalg.lstsq(X, y)
+least_squares_solution = np.linalg.lstsq(X, y) 
+least_squares_coef = least_squares_solution[0]
+least_squares_result = least_squares_solution[1]
+print(least_squares_coef)
+print(least_squares_result)
+
+tmpX = X
+
+characteristic_values = {}
+for i in range(1,15):
+     X = np.delete(tmpX, i, 1)
+     characteristic_values[i] = np.linalg.lstsq(X, y)[1]
+
+sorted_characteristic_values = sorted(characteristic_values.items(), key=operator.itemgetter(1))
+for item in enumerate(sorted_characteristic_values):
+    print('optimal value without characteristic x{} is {}'.format(item[1][0], item[1][1]))
