@@ -79,6 +79,10 @@ least_squares_result = least_squares_solution[1]
 print(least_squares_coef)
 print(least_squares_result)
 
+print("Deviation for patient")
+y_prog = X.dot(least_squares_coef)
+print(y - y_prog)
+
 tmpX = X
 
 characteristic_values = {}
