@@ -10,7 +10,6 @@ testData = F.readlines()
 
 X = np.zeros((36,16))
 y = np.zeros(36)
-healthX = np.zeros((10,16))
 
 for i in range(4,40):
     tmpArr = testData[i].split()
@@ -48,14 +47,18 @@ X = np.delete(X, 15, 1)
 
 #tmpX = X
 
-#for i in range(0,14):
+#characteristic_values = {}
+#for i in range(1,15):
 #     X = np.delete(tmpX, i, 1)
 #     w = cvx.Variable(14)
 #     loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
 #     problem = cvx.Problem(cvx.Minimize(loss))
 #     problem.solve(verbose=True) 
-#     opt = problem.value
-#     print('Optimal Objective function value is: {}'.format(opt))
+#     characteristic_values[i] = problem.value
+
+#sorted_characteristic_values = sorted(characteristic_values.items(), key=operator.itemgetter(1))
+#for item in enumerate(sorted_characteristic_values):
+#    print('optimal value without characteristic x{} is {}'.format(item[1][0], item[1][1]))
 
 #for i in range(44, 54):
 #    print(testData[i])
@@ -86,10 +89,32 @@ print(y - y_prog)
 tmpX = X
 
 characteristic_values = {}
-for i in range(1,15):
+for i in range(1,16):
      X = np.delete(tmpX, i, 1)
      characteristic_values[i] = np.linalg.lstsq(X, y)[1]
 
 sorted_characteristic_values = sorted(characteristic_values.items(), key=operator.itemgetter(1))
 for item in enumerate(sorted_characteristic_values):
     print('optimal value without characteristic x{} is {}'.format(item[1][0], item[1][1]))
+
+#logistic regression
+
+#read data
+
+X = np.zeros((36,16))
+y = np.zeros(36)
+
+for i in range(4,40):
+    tmpArr = testData[i].split()
+    y[i-4]=np.log(float(tmpArr[1]))
+    for j in range (2,18):
+        X[i-4][j-2] = float(tmpArr[j])
+
+X = np.delete(X, 15, 1)
+
+X = np.c_[ np.ones(36), X ] 
+least_squares_solution = np.linalg.lstsq(X, y) 
+least_squares_coef = least_squares_solution[0]
+least_squares_result = least_squares_solution[1]
+print(least_squares_coef)
+print(least_squares_result)
