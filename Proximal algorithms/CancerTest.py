@@ -10,15 +10,30 @@ testData = F.readlines()
 
 X = np.zeros((36,16))
 y = np.zeros(36)
+y_log = np.zeros(36)
+
+#for i in range(4,40):
+#    tmpArr = testData[i].split()
+#    y[i-4]=float(tmpArr[1])
+#    for j in range (2,18):
+#        X[i-4][j-2] = float(tmpArr[j])
 
 for i in range(4,40):
     tmpArr = testData[i].split()
     y[i-4]=float(tmpArr[1])
+    y_log[i-4]=np.log(float(tmpArr[1]))
     for j in range (2,18):
         X[i-4][j-2] = float(tmpArr[j])
 
 corrX = np.corrcoef(X.T)
 print(corrX)
+
+def arithmetic_average(vector):
+    arithmetic_average = 0
+    for i in range(len(vector)):
+        arithmetic_average += abs(vector[i])
+    arithmetic_average /= len(vector)
+    print(arithmetic_average)
 
 X = np.delete(X, 15, 1)
 
@@ -26,8 +41,9 @@ X = np.c_[ np.ones(36), X ]
 L = (np.linalg.svd(X)[1][0])**2
 max_iter = 100
 step = 1.0 / L
-lamda = 1.0/5;
+lamda = 0.001;
 
+###lasso
 def obj(w):
     r = X*w-y;
     return np.sum(np.multiply(r,r))/2 +  lamda * np.sum(np.abs(w))
@@ -39,7 +55,7 @@ def soft_threshod(w,mu):
     return np.multiply(np.sign(w), np.maximum(np.abs(w)- mu,0))  
 
 w = cvx.Variable(16)
-loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
+loss = cvx.sum_squares(X*w-y_log)/2 + lamda * cvx.norm(w,1)
 
 problem = cvx.Problem(cvx.Minimize(loss))
 problem.solve(verbose=True) 
@@ -47,9 +63,14 @@ opt = problem.value
 print('Optimal Objective function value is: {}'.format(opt))
 
 print("Deviation for patient")
-print(w.value)
 y_prog = X.dot(w.value)
 y_prog = np.array(y_prog.T)[0]
+
+for i in range(len(y_prog)):
+    y_prog[i] = np.exp(y_prog[i])
+
+print(y_prog)
+
 residual = y - y_prog
 print(residual)
 arithmetic_average = 0
@@ -64,7 +85,7 @@ characteristic_values = {}
 for i in range(1,16):
      X = np.delete(tmpX, i, 1)
      w = cvx.Variable(15)
-     loss = cvx.sum_squares(X*w-y)/2 + lamda * cvx.norm(w,1)
+     loss = cvx.sum_squares(X*w-y_log)/2 + lamda * cvx.norm(w,1)
      problem = cvx.Problem(cvx.Minimize(loss))
      problem.solve(verbose=True) 
      characteristic_values[i] = problem.value
